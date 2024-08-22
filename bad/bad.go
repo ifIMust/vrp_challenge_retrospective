@@ -8,7 +8,7 @@ import "github.com/ifIMust/vrp_challenge/input"
 func AssignRoutes(loads []*input.Load) [][]int {
 	assignments := make([][]int, 0, 1)
 
-	driver0 := make([]int, 1)
+	driver0 := make([]int, 0, 1)
 	for _, load := range loads {
 		driver0 = append(driver0, load.Index)
 	}

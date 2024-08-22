@@ -1,0 +1,3 @@
+#!/usr/bin/env bash
+go build -o vrp main.go
+python evaluateShared.py --problemDir Training\ Problems/ --cmd ./vrp
