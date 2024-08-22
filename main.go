@@ -3,7 +3,9 @@ package main
 import (
 	"fmt"
 	"os"
+	"strings"
 
+	"github.com/ifIMust/vrp_challenge/bad"
 	"github.com/ifIMust/vrp_challenge/input"
 )
 
@@ -13,11 +15,17 @@ func main() {
 		os.Exit(1)
 	}
 
-	// read the input data
 	loads := input.ReadFile(os.Args[1])
-	fmt.Println("Found loads: ", len(loads))
 
-	// call one of the algorithms
+	assignments := bad.AssignRoutes(loads)
+
 	// output the results from the result structures
+	for _, driver := range assignments {
+		fmt.Println(formatSlice(driver))
+	}
+}
 
+func formatSlice(slice []int) string {
+	defaultFormat := fmt.Sprintf("%v", slice)
+	return strings.ReplaceAll(defaultFormat, " ", ",")
 }
