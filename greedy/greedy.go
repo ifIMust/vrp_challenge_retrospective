@@ -9,7 +9,7 @@ import (
 // Try to assign all loads using the closest location to the driver's current location
 func AssignRoutes(loads []*common.Load) [][]int {
 	// assignments is the primary output
-	assignments := make([][]int, 0, 1)
+	assignments := make([][]int, 0)
 
 	remainingLoads := common.AsMap(loads)
 
