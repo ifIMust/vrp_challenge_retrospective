@@ -2,7 +2,6 @@ package naive_branch
 
 import (
 	"math"
-	"sort"
 
 	"github.com/ifIMust/vrp_challenge/common"
 )
@@ -12,7 +11,7 @@ import (
 // Prune branches that are worse than the best seen solution.
 // Single threaded, with hopes of an improved concurrent version to follow.
 func AssignRoutes(loads []*common.Load) [][]int {
-	var bestRoute [][]int
+	var bestRoute [][]int = nil
 	lowestCost := math.Inf(1)
 
 	assignments := make([][]int, 0)
@@ -52,22 +51,24 @@ func search(
 
 	// Is all the work assigned for this branch?
 	if len(remainingLoads) == 0 {
+		// Account for sending the last driver home
+		totalMinutesUsed += location.HomeCost()
+
 		// Update best route if this is the best
 		if totalMinutesUsed < *lowestCost {
-			*lowestCost = totalMinutesUsed + location.HomeCost()
+			*lowestCost = totalMinutesUsed
 			*bestRoute = assignments
-
 		}
 		return
 	}
 
-	// Sort loads by those nearest to currrent location
-	sorter := common.NewLoadSorter(remainingLoads, location)
-	sort.Sort(sorter)
-
-	//	for branch := 0; branch < sorter.Len(); branch += 1 {
-	for branch := 0; branch < 1; branch += 1 { // TODO expand loop condition
-		nearbyLoad := sorter.LoadEntries[branch].Load
+	branch := 0
+	maxBranches := 2
+	for _, load := range remainingLoads {
+		if branch >= maxBranches {
+			break
+		}
+		nearbyLoad := load
 
 		// Check if this branch should be considered
 		if bound(nearbyLoad, totalMinutesUsed, location) < *lowestCost {
@@ -92,19 +93,19 @@ func search(
 				assignmentsCopy[driver] = append(assignmentsCopy[driver], nearbyLoad.Index)
 				delete(remainingLoadsCopy, nearbyLoad.Index)
 				additionalMinutes := location.Distance(nearbyLoad.Pickup) + nearbyLoad.Cost()
-				driverMinutesUsed += additionalMinutes
-				totalMinutesUsed += additionalMinutes
-				location = nearbyLoad.Dropoff
 
 				search(remainingLoadsCopy,
 					assignmentsCopy,
 					driver,
-					location,
-					driverMinutesUsed,
-					totalMinutesUsed,
+					nearbyLoad.Dropoff,
+					driverMinutesUsed+additionalMinutes,
+					totalMinutesUsed+additionalMinutes,
 					bestRoute,
 					lowestCost)
 			}
 		}
+
+		branch += 1
 	}
+
 }
