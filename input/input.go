@@ -7,21 +7,12 @@ import (
 	"os"
 	"strconv"
 	"strings"
+
+	"github.com/ifIMust/vrp_challenge/common"
 )
 
-type Location struct {
-	X float64
-	Y float64
-}
-
-type Load struct {
-	Index   int
-	Pickup  *Location
-	Dropoff *Location
-}
-
-func ReadFile(fileName string) []*Load {
-	loads := make([]*Load, 0)
+func ReadFile(fileName string) []*common.Load {
+	loads := make([]*common.Load, 0)
 	file, err := os.Open(fileName)
 	if err != nil {
 		log.Fatal(err)
@@ -43,7 +34,7 @@ func ReadFile(fileName string) []*Load {
 	return loads
 }
 
-func loadFromLine(line string) (*Load, error) {
+func loadFromLine(line string) (*common.Load, error) {
 	fields := strings.Split(line, " ")
 	if len(fields) != 3 {
 		return nil, errors.New("unexpected number of fields")
@@ -64,11 +55,11 @@ func loadFromLine(line string) (*Load, error) {
 		return nil, errors.New("invalid dropoff coordinates")
 	}
 
-	return &Load{Index: index, Pickup: pickup, Dropoff: dropoff}, nil
+	return &common.Load{Index: index, Pickup: pickup, Dropoff: dropoff}, nil
 }
 
 // Expected input style: "(12.34,56.78)"
-func parseCoords(coords string) (*Location, error) {
+func parseCoords(coords string) (*common.Location, error) {
 	coords = strings.ReplaceAll(coords, "(", "")
 	coords = strings.ReplaceAll(coords, ")", "")
 	fields := strings.Split(coords, ",")
@@ -85,5 +76,5 @@ func parseCoords(coords string) (*Location, error) {
 	if err != nil {
 		return nil, errors.New("Y coordinate could not be interpreted as a float.")
 	}
-	return &Location{X: x, Y: y}, nil
+	return &common.Location{X: x, Y: y}, nil
 }
