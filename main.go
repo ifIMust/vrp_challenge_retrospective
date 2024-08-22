@@ -17,6 +17,7 @@ func main() {
 
 	loads := input.ReadFile(os.Args[1])
 
+	// assignments := bad.AssignRoutes(loads)
 	// assignments := greedy.AssignRoutes(loads)
 	assignments := naive_branch.AssignRoutes(loads)
 
