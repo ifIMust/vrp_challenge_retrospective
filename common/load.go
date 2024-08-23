@@ -4,16 +4,18 @@ type Load struct {
 	Index   int
 	Pickup  *Location
 	Dropoff *Location
+	Cost    float64
 }
 
-// Compute distance from Pickup to Dropoff
-func (l *Load) Cost() float64 {
-	return l.Pickup.Distance(l.Dropoff)
+func NewLoad(index int, pickup *Location, dropoff *Location) *Load {
+	load := Load{Index: index, Pickup: pickup, Dropoff: dropoff}
+	load.Cost = pickup.Distance(dropoff)
+	return &load
 }
 
 // Compute distance from Dropoff to the depot/origin
 func (l *Load) HomeCost() float64 {
-	return l.Dropoff.Distance(HomeLocation)
+	return l.Dropoff.HomeCost
 }
 
 // LoadMap is a helper type for organizing Loads

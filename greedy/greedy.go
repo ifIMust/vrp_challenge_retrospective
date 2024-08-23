@@ -40,7 +40,7 @@ func greedy(remainingLoads common.LoadMap,
 		sort.Sort(sorter)
 
 		nextLocation := sorter.Pop()
-		nextLocationCost := location.Distance(nextLocation.Pickup) + nextLocation.Cost()
+		nextLocationCost := location.Distance(nextLocation.Pickup) + nextLocation.Cost
 		nextLocationMinCost := nextLocationCost + nextLocation.HomeCost()
 
 		// Check if this driver's job is done.

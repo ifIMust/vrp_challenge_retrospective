@@ -24,7 +24,7 @@ func AssignRoutes(loads []*common.Load) [][]int {
 }
 
 func bound(load *common.Load, prevMinutes float64, location *common.Location) float64 {
-	return prevMinutes + location.Distance(load.Pickup) + load.Cost() + load.HomeCost()
+	return prevMinutes + location.Distance(load.Pickup) + load.Cost + load.HomeCost()
 }
 
 // To avoid the nested slices from being entangled when branching, manually copy them
@@ -52,7 +52,7 @@ func search(
 	// Is all the work assigned for this branch?
 	if len(remainingLoads) == 0 {
 		// Account for sending the last driver home
-		totalMinutesUsed += location.HomeCost()
+		totalMinutesUsed += location.HomeCost
 
 		// Update best route if this is the best
 		if totalMinutesUsed < *lowestCost {
@@ -63,7 +63,7 @@ func search(
 	}
 
 	branch := 0
-	maxBranches := 2
+	maxBranches := 3
 	for _, load := range remainingLoads {
 		if branch >= maxBranches {
 			break
@@ -85,14 +85,14 @@ func search(
 					driver+1,
 					common.HomeLocation,
 					0.0,
-					totalMinutesUsed+location.HomeCost(),
+					totalMinutesUsed+location.HomeCost,
 					bestRoute,
 					lowestCost)
 			} else {
 				// Assign this work to current driver
 				assignmentsCopy[driver] = append(assignmentsCopy[driver], nearbyLoad.Index)
 				delete(remainingLoadsCopy, nearbyLoad.Index)
-				additionalMinutes := location.Distance(nearbyLoad.Pickup) + nearbyLoad.Cost()
+				additionalMinutes := location.Distance(nearbyLoad.Pickup) + nearbyLoad.Cost
 
 				search(remainingLoadsCopy,
 					assignmentsCopy,

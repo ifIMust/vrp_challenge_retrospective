@@ -2,3 +2,4 @@
 set -e
 go build -o vrp main.go
 python evaluateShared.py --problemDir Training\ Problems/ --cmd ./vrp
+#python evaluateShared.py --problemDir subset --cmd ./vrp

@@ -54,8 +54,7 @@ func loadFromLine(line string) (*common.Load, error) {
 	if err != nil {
 		return nil, errors.New("invalid dropoff coordinates")
 	}
-
-	return &common.Load{Index: index, Pickup: pickup, Dropoff: dropoff}, nil
+	return common.NewLoad(index, pickup, dropoff), nil
 }
 
 // Expected input style: "(12.34,56.78)"
@@ -76,5 +75,5 @@ func parseCoords(coords string) (*common.Location, error) {
 	if err != nil {
 		return nil, errors.New("Y coordinate could not be interpreted as a float.")
 	}
-	return &common.Location{X: x, Y: y}, nil
+	return common.NewLocation(x, y), nil
 }
