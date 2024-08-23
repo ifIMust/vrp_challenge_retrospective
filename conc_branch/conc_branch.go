@@ -21,6 +21,7 @@ type ConcurrentBranchBoundSearcher struct {
 	bestCost  float64
 	bestRoute [][]int
 
+	//semaphore chan int
 	waitGroup sync.WaitGroup
 	done      chan int
 }
@@ -62,6 +63,16 @@ func (c *ConcurrentBranchBoundSearcher) GetRoutes() [][]int {
 	return c.bestRoute
 }
 
+type BranchTask struct {
+	Load              *common.Load
+	remainingLoads    common.LoadMap
+	assignments       [][]int
+	driver            int
+	location          *common.Location
+	driverMinutesUsed float64
+	totalMinutesUsed  float64
+}
+
 func (c *ConcurrentBranchBoundSearcher) search(
 	remainingLoads common.LoadMap,
 	assignments [][]int,
@@ -82,20 +93,29 @@ func (c *ConcurrentBranchBoundSearcher) search(
 	sorter := common.NewLoadSorter(remainingLoads, location)
 	sort.Sort(sorter)
 
-	maxBranches := min(sorter.Len(), 2)
+	// Precompute overall cost remaining, regardless of next branch choice
+	var minCost = 0.0
+	var lowestHomeCost = math.Inf(1)
+	for _, load := range remainingLoads {
+		minCost += load.Cost
+		lowestHomeCost = min(lowestHomeCost, load.HomeCost())
+	}
+
+	maxBranches := min(sorter.Len(), 1)
 	for branch := 0; branch < maxBranches; branch += 1 {
 		nearbyLoad := sorter.LoadEntries[branch].Load
 
 		c.waitGroup.Add(1)
+		//c.semaphore <- 1
 		go func() {
 			// Check if this branch should be considered
-			if bound(nearbyLoad, totalMinutesUsed, location) < c.lowestCost() {
+			if bound(nearbyLoad, totalMinutesUsed+minCost, location) < c.lowestCost() {
 				// Duplicate these to avoid entanglement with other branches.
 				remainingLoadsCopy := remainingLoads.Duplicate()
 				assignmentsCopy := deepCopyAssigments(assignments)
 
 				// Check if current driver can handle this Load
-				if bound(nearbyLoad, driverMinutesUsed, location) > common.MaxMinutesPerDriver {
+				if bound(nearbyLoad, driverMinutesUsed+nearbyLoad.HomeCost()+nearbyLoad.Cost, location) > common.MaxMinutesPerDriver {
 					// Current driver can't do this load.
 					// This branch will continue with a new driver starting at the depot location.
 					c.search(remainingLoadsCopy,
@@ -128,8 +148,10 @@ func AssignRoutes(loads []*common.Load) [][]int {
 	return searcher.GetRoutes()
 }
 
+// Bounding function for branch pruning or driver capacity checks
+// prevMinutes includes prior travel, plus minimum total travel needed for completion of driver route or total problem
 func bound(load *common.Load, prevMinutes float64, location *common.Location) float64 {
-	return prevMinutes + location.Distance(load.Pickup) + load.Cost + load.HomeCost()
+	return prevMinutes + location.Distance(load.Pickup)
 }
 
 // To avoid the nested slices from being entangled when branching, manually copy them

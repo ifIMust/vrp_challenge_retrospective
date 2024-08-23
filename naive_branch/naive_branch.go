@@ -23,6 +23,7 @@ func AssignRoutes(loads []*common.Load) [][]int {
 	return bestRoute
 }
 
+// Checks the total cost of adding a Load and home trip for a driver
 func bound(load *common.Load, prevMinutes float64, location *common.Location) float64 {
 	return prevMinutes + location.Distance(load.Pickup) + load.Cost + load.HomeCost()
 }
@@ -63,7 +64,7 @@ func search(
 	}
 
 	branch := 0
-	maxBranches := 3
+	maxBranches := 2
 	for _, load := range remainingLoads {
 		if branch >= maxBranches {
 			break
@@ -71,6 +72,7 @@ func search(
 		nearbyLoad := load
 
 		// Check if this branch should be considered
+		//if bound(nearbyLoad, totalMinutesUsed, location) < *lowestCost {
 		if bound(nearbyLoad, totalMinutesUsed, location) < *lowestCost {
 			// Duplicate these to avoid entanglement with other branches.
 			remainingLoadsCopy := remainingLoads.Duplicate()

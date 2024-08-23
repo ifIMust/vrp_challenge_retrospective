@@ -7,7 +7,7 @@ import (
 )
 
 // Try to assign all loads using the closest location to the driver's current location
-func AssignRoutes(loads []*common.Load) [][]int {
+func AssignRoutes(loads []*common.Load) ([][]int, float64) {
 	// assignments is the primary output
 	assignments := make([][]int, 0)
 
@@ -17,12 +17,14 @@ func AssignRoutes(loads []*common.Load) [][]int {
 	numLoads := len(loads)
 	loadsCompleted := 0
 
+	minutesUsed := 0.0
+
 	// driver is the driver currently being assigned
 	for driver := 0; loadsCompleted < numLoads; driver += 1 {
 		assignments = append(assignments, make([]int, 0))
-		greedy(remainingLoads, assignments, driver, common.HomeLocation, &loadsCompleted)
+		minutesUsed += greedy(remainingLoads, assignments, driver, common.HomeLocation, &loadsCompleted)
 	}
-	return assignments
+	return assignments, minutesUsed
 }
 
 // Assign the nearest location possible, as many times as possible, to this driver.
@@ -30,7 +32,7 @@ func greedy(remainingLoads common.LoadMap,
 	assignments [][]int,
 	driver int,
 	location *common.Location,
-	loadsCompleted *int) {
+	loadsCompleted *int) float64 {
 
 	minutesUsed := 0.0
 
@@ -45,7 +47,7 @@ func greedy(remainingLoads common.LoadMap,
 
 		// Check if this driver's job is done.
 		if nextLocationMinCost+minutesUsed > common.MaxMinutesPerDriver {
-			return
+			return minutesUsed
 		}
 
 		// Assign the closest pickup to this driver
@@ -55,4 +57,5 @@ func greedy(remainingLoads common.LoadMap,
 		location = nextLocation.Dropoff
 		*loadsCompleted = *loadsCompleted + 1
 	}
+	return minutesUsed
 }

@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ifIMust/vrp_challenge/conc_branch"
 	"github.com/ifIMust/vrp_challenge/input"
+	"github.com/ifIMust/vrp_challenge/more_branch"
 )
 
 func main() {
@@ -17,9 +17,13 @@ func main() {
 
 	loads := input.ReadFile(os.Args[1])
 
-	//assignments := greedy.AssignRoutes(loads)
+	// assignments, minutes := greedy.AssignRoutes(loads)
+	// cost := common.QuickCost(len(assignments), minutes)
+	// fmt.Println("cost: ", cost)
+
 	//assignments := naive_branch.AssignRoutes(loads)
-	assignments := conc_branch.AssignRoutes(loads)
+	//assignments := conc_branch.AssignRoutes(loads)
+	assignments := more_branch.AssignRoutes(loads)
 
 	// output the results from the result structures
 	for _, driver := range assignments {
