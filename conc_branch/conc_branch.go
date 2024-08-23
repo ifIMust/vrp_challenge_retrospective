@@ -2,6 +2,7 @@ package conc_branch
 
 import (
 	"math"
+	"sort"
 	"sync"
 
 	"github.com/ifIMust/vrp_challenge/common"
@@ -78,14 +79,12 @@ func (c *ConcurrentBranchBoundSearcher) search(
 		return
 	}
 
-	branch := 0
-	maxBranches := 1
-	for _, load := range remainingLoads {
-		if branch >= maxBranches {
-			break
-		}
+	sorter := common.NewLoadSorter(remainingLoads, location)
+	sort.Sort(sorter)
 
-		nearbyLoad := load
+	maxBranches := min(sorter.Len(), 2)
+	for branch := 0; branch < maxBranches; branch += 1 {
+		nearbyLoad := sorter.LoadEntries[branch].Load
 
 		c.waitGroup.Add(1)
 		go func() {
@@ -121,7 +120,6 @@ func (c *ConcurrentBranchBoundSearcher) search(
 			}
 			c.waitGroup.Done()
 		}()
-		branch += 1
 	}
 }
 
