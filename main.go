@@ -5,7 +5,7 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ifIMust/vrp_challenge/greedy"
+	"github.com/ifIMust/vrp_challenge/conc_branch"
 	"github.com/ifIMust/vrp_challenge/input"
 )
 
@@ -17,8 +17,9 @@ func main() {
 
 	loads := input.ReadFile(os.Args[1])
 
-	assignments := greedy.AssignRoutes(loads)
+	//assignments := greedy.AssignRoutes(loads)
 	//assignments := naive_branch.AssignRoutes(loads)
+	assignments := conc_branch.AssignRoutes(loads)
 
 	// output the results from the result structures
 	for _, driver := range assignments {
