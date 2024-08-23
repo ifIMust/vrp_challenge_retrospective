@@ -41,20 +41,20 @@ func greedy(remainingLoads common.LoadMap,
 		sorter := common.NewLoadSorter(remainingLoads, location)
 		sort.Sort(sorter)
 
-		nextLocation := sorter.Pop()
-		nextLocationCost := location.Distance(nextLocation.Pickup) + nextLocation.Cost
-		nextLocationMinCost := nextLocationCost + nextLocation.HomeCost()
+		nextLoad := sorter.Pop()
+		nextLoadCost := location.Distance(nextLoad.Pickup) + nextLoad.Cost
+		nextLoadMinCost := nextLoadCost + nextLoad.HomeCostDropoff()
 
 		// Check if this driver's job is done.
-		if nextLocationMinCost+minutesUsed > common.MaxMinutesPerDriver {
+		if nextLoadMinCost+minutesUsed > common.MaxMinutesPerDriver {
 			return minutesUsed
 		}
 
 		// Assign the closest pickup to this driver
-		assignments[driver] = append(assignments[driver], nextLocation.Index)
-		delete(remainingLoads, nextLocation.Index)
-		minutesUsed += nextLocationCost
-		location = nextLocation.Dropoff
+		assignments[driver] = append(assignments[driver], nextLoad.Index)
+		delete(remainingLoads, nextLoad.Index)
+		minutesUsed += nextLoadCost
+		location = nextLoad.Dropoff
 		*loadsCompleted = *loadsCompleted + 1
 	}
 	return minutesUsed

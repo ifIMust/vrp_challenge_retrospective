@@ -8,6 +8,8 @@ import (
 	"github.com/ifIMust/vrp_challenge/common"
 )
 
+// This creates too many goroutines and runs out of memory.
+
 // Try to improve on the naive branch approach, by one or more of the following:
 // Using goroutines to improve CPU utilization and (hopefully) pruning
 // Using a sort or deterministic order for loads
@@ -21,7 +23,6 @@ type ConcurrentBranchBoundSearcher struct {
 	bestCost  float64
 	bestRoute [][]int
 
-	//semaphore chan int
 	waitGroup sync.WaitGroup
 	done      chan int
 }
@@ -30,7 +31,6 @@ func NewConcurrentBranchBoundSearcher(loads []*common.Load) *ConcurrentBranchBou
 	c := ConcurrentBranchBoundSearcher{}
 	c.loads = loads
 	c.bestCost = math.Inf(1)
-	//c.semaphore = make(chan int, MaxGoroutines)
 	c.done = make(chan int)
 	return &c
 }
@@ -98,7 +98,7 @@ func (c *ConcurrentBranchBoundSearcher) search(
 	var lowestHomeCost = math.Inf(1)
 	for _, load := range remainingLoads {
 		minCost += load.Cost
-		lowestHomeCost = min(lowestHomeCost, load.HomeCost())
+		lowestHomeCost = min(lowestHomeCost, load.HomeCostDropoff())
 	}
 
 	maxBranches := min(sorter.Len(), 1)
@@ -106,7 +106,6 @@ func (c *ConcurrentBranchBoundSearcher) search(
 		nearbyLoad := sorter.LoadEntries[branch].Load
 
 		c.waitGroup.Add(1)
-		//c.semaphore <- 1
 		go func() {
 			// Check if this branch should be considered
 			if bound(nearbyLoad, totalMinutesUsed+minCost, location) < c.lowestCost() {
@@ -115,7 +114,7 @@ func (c *ConcurrentBranchBoundSearcher) search(
 				assignmentsCopy := deepCopyAssigments(assignments)
 
 				// Check if current driver can handle this Load
-				if bound(nearbyLoad, driverMinutesUsed+nearbyLoad.HomeCost()+nearbyLoad.Cost, location) > common.MaxMinutesPerDriver {
+				if bound(nearbyLoad, driverMinutesUsed+nearbyLoad.HomeCostDropoff()+nearbyLoad.Cost, location) > common.MaxMinutesPerDriver {
 					// Current driver can't do this load.
 					// This branch will continue with a new driver starting at the depot location.
 					c.search(remainingLoadsCopy,

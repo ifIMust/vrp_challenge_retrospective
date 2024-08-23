@@ -25,7 +25,7 @@ func AssignRoutes(loads []*common.Load) [][]int {
 
 // Checks the total cost of adding a Load and home trip for a driver
 func bound(load *common.Load, prevMinutes float64, location *common.Location) float64 {
-	return prevMinutes + location.Distance(load.Pickup) + load.Cost + load.HomeCost()
+	return prevMinutes + location.Distance(load.Pickup) + load.Cost + load.HomeCostDropoff()
 }
 
 // To avoid the nested slices from being entangled when branching, manually copy them

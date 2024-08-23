@@ -132,7 +132,7 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 			var lowestHomeCost = math.Inf(1)
 			for _, load := range node.remainingLoads {
 				minCost += load.Cost
-				lowestHomeCost = min(lowestHomeCost, load.HomeCost())
+				lowestHomeCost = min(lowestHomeCost, load.HomeCostDropoff())
 			}
 			minCost += lowestHomeCost
 
@@ -151,8 +151,9 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 					newNode.assignments = append(newNode.assignments, make([]int, 1))
 					newNode.assignments[newNode.driver][0] = load.Index
 
-					loadTime := load.HomeCost() + load.Cost
+					loadTime := load.HomeCostPickup() + load.Cost
 					newNode.driverMinutesUsed = loadTime
+
 					// Includes time for sending the last driver back to depot:
 					newNode.totalMinutesUsed = node.totalMinutesUsed + node.location.HomeCost + loadTime
 				} else {
@@ -209,7 +210,7 @@ func (c *BranchBoundSearcher) bound(node *SearchItem, minimumRemainingLoadMinute
 // Calculate the impact of adding a Load for this driver, to compare against the daily maximum
 // Includes driving to the pickup, dropoff, and depot.
 func driverTotalMinutesWithLoad(load *common.Load, prevMinutes float64, location *common.Location) float64 {
-	return prevMinutes + location.Distance(load.Pickup) + load.Cost + load.HomeCost()
+	return prevMinutes + location.Distance(load.Pickup) + load.Cost + load.HomeCostDropoff()
 }
 
 // To avoid the nested slices from being entangled when branching, manually copy them

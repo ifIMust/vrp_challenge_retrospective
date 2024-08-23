@@ -13,8 +13,13 @@ func NewLoad(index int, pickup *Location, dropoff *Location) *Load {
 	return &load
 }
 
-// Compute distance from Dropoff to the depot/origin
-func (l *Load) HomeCost() float64 {
+// Distance from the depot/origin to Pickup location
+func (l *Load) HomeCostPickup() float64 {
+	return l.Pickup.HomeCost
+}
+
+// Distance from Dropoff to the depot/origin
+func (l *Load) HomeCostDropoff() float64 {
 	return l.Dropoff.HomeCost
 }
 
