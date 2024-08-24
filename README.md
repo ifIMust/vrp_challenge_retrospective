@@ -4,6 +4,7 @@ The program solves a specific variant of a Vehicle Routing Problem.
 Each load must be picked up and dropped off at specific locations, while minimizing overall cost.
 
 The solution employed is Tabu Search. An initial valid solution is found using a greedy algorithm. Then the neighboring solution space is explored by testing similar solutions.
+The final version uses 76 iterations of Tabu Search with a Tabu list size of 20. These settings allow it to process problems with up to 200 loads in 27 seconds or less.
 
 ## Build
 A Go compiler is required.
@@ -33,27 +34,27 @@ Since all location data is available from the outset, the time costs of travelin
 #### Greedy Algorithm
 Each iteration, the collection of remaining loads is sorted by proximity to the driver's current location. In this way, each driver is assigned as many loads as possible.
 
-Although my branch and bound algorithm produced a lower cost than this greedy algorithm, there was no difference after applying Tabu Search to the solutions. The greedy one is faster and more robust.
+Although my branch and bound algorithm produced a lower cost than this greedy algorithm, there was no difference after applying Tabu Search to the solutions. The greedy approach was faster and more robust.
 
 #### Tabu Search
-The cost function heavily penalizes additional drivers, so this Tabu Search explores removing loads from routes below a certain size (tabu.maxSourceRouteSize), and placing those loads in other routes. Larger values for maxSourceRouteSize can increase the number of neighboring candidates per iteration dramatically. Smaller values are much faster, but are less likely to find optimal solutions. Testing led to setting this number to 5 to achieve low cost results.
+The cost function heavily penalizes additional drivers, so this Tabu Search explores removing loads from routes below a certain size (tabu.maxSourceRouteSize), and placing those loads in other routes. Larger values for maxSourceRouteSize can increase the number of neighboring candidates per iteration dramatically. Smaller values are much faster, but are less likely to find optimal solutions. Testing led to setting this number to 5 to achieve quality solutions.
 
-Performing a deep compare of a candidate to the Tabu list is expensive, so that step is delayed until necessary. A larger Tabu list size slows time performance, but too small a list harms the cost performance.
+Performing a deep compare of a candidate to the Tabu list is expensive, so that step is delayed until necessary. A larger Tabu list size slows time performance, but too small of a list impacts solution quality.
 
 Overall, this is a time-consuming approach, but it provides quality solutions if enough iterations and time are permitted.
 
 #### Further Work
 With more time available, further improvements would include:
-- Searching additional neighbors for solutions. The current approach only moves loads to other driver's routes, and does not test different sequences within a route.
-- Decomposition of nested loops in tabu.getNeighbors for improved readability.
-- Increased test coverage.
+- Search additional neighbors for solutions. The current approach only moves loads to other driver's routes, and does not test permutations within a route.
+- Decompose nested loops in tabu.getNeighbors for improved readability.
+- Increase test coverage.
+- Rewrite LoadDistance to use a 2D array instead of its map of maps. The hash times are slowing performance; using the maps might even be worse than just performing the computations every time.
 
 ### Development Process
 Here's some more detail of how the project progressed over 48 hours.
-- Started with addressing project I/O needs and basic structures like Locations and Loads.
+- Addressed project I/O needs and basic structures like Locations and Loads.
 - Came up with a working greedy algorithm.
-- Tried to improve the cost result by implementing a Branch and Bound approach. I was able to get one working, but it produced only slightly better outcomes than the greedy approach. It was also brittle. Small changes to the bounding function caused it to degenerate into long run times.
+- Tried to improve the cost result by implementing a Branch and Bound approach. I got one working, but it produced only slightly better outcomes than the greedy approach. It was also brittle; small changes to the bounding function caused it to degenerate into long run times.
 - Considered Integer Linear Programming approach. I was unsure if I could formulate the problem correctly with limited time remaining.
-- Tried a shallow Tabu search that sought to move loads from routes of length 1 to other routes. This was successful, so I expanded it to a deep search.
-- Profiled Tabu search. Comparisons to the Tabu list are expensive, so I minimized those. Used goroutines when processing the candidate queue, to relieve CPU bottleneck. This reached desired low cost level.
-
+- Tried a shallow Tabu search that sought to move loads from routes of length 1 to other routes. This was successful, so I expanded it to a deeper search.
+- Profiled Tabu search. Comparisons to the Tabu list are expensive, so I minimized those. Used goroutines when processing the candidate queue, to relieve CPU bottleneck. This reached the desired low cost level.
