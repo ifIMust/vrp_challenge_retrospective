@@ -6,11 +6,13 @@ import (
 	"github.com/ifIMust/vrp_challenge/common"
 )
 
-// Try to assign all loads using the closest location to the driver's current location
+// Assign all loads by always using the closest location to the driver's current location.
 func AssignRoutes(loads []*common.Load) ([][]int, float64) {
-	// assignments is the primary output
+	// assignments is the primary output.
 	assignments := make([][]int, 0)
 
+	// Each iteration, loads are read from remainingLoads and sorted.
+	// Loads are deleted from the remainingLoads when assigned to a route.
 	remainingLoads := common.AsMap(loads)
 
 	// Used to check for task completion
@@ -21,7 +23,9 @@ func AssignRoutes(loads []*common.Load) ([][]int, float64) {
 
 	// driver is the driver currently being assigned
 	for driver := 0; loadsCompleted < numLoads; driver += 1 {
+		// Create a new empty route for the new driver
 		assignments = append(assignments, make([]int, 0))
+		// Assign nearby locations until the driver's day is full.
 		minutesUsed += greedy(remainingLoads, assignments, driver, common.HomeLocation, &loadsCompleted)
 	}
 	return assignments, minutesUsed

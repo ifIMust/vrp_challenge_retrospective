@@ -45,11 +45,16 @@ func handleCandidate(candidate Route, bestCandidateScore float64, ld *common.Loa
 func TabuSearch(route Route, loads []*common.Load) Route {
 	resultChan := make(chan CandidateResult)
 	ld := common.NewLoadDistance(loads)
+
 	bestScore := ld.RouteCost(route)
 	bestSolution := deepCopyRoute(route)
 	bestCandidate := bestSolution
 	var candidates []Route = make([]Route, 1)
 	candidates[0] = bestCandidate
+
+	// The Tabu list tracks recent best candidates.
+	// Avoiding candidates on this list helps to explore worse solutions
+	// on the way to better ones.
 	var tabu []Route = make([]Route, 0)
 
 	for i := 0; i < iterations; i += 1 {
@@ -94,6 +99,7 @@ func isTabu(route Route, tabu []Route) bool {
 	return false
 }
 
+// isValid determines whether a solution violates the driver maximum distance constraint.
 func isValid(route Route, ld *common.LoadDistance) bool {
 	for _, driverRoute := range route {
 		if ld.MinutesFromRoute(driverRoute, true) > common.MaxMinutesPerDriver {
@@ -106,23 +112,24 @@ func isValid(route Route, ld *common.LoadDistance) bool {
 // Focus on trying to insert single loads from smallest routes into other routes.
 func getNeighbors(route Route) []Route {
 	neighbors := make([]Route, 0)
+	// Look through all driver routes for ones the right size
 	for i, driverRoute := range route {
 		driverRouteSz := len(driverRoute)
 		if driverRouteSz <= maxSourceRouteSize {
-			// Try moving this single load everywhere else
+			// This route is small enough to tamper with.
+			// Try moving loads from the route to all positions in all other routes.
 			for n, modifiedDriverRoute := range route {
-				if i != n {
+				if i != n { // Don't move the load into the same route.
 					for o := 0; o < len(modifiedDriverRoute)+1; o += 1 {
 						for sourceRouteIdx := 0; sourceRouteIdx < driverRouteSz; sourceRouteIdx += 1 {
-							//for o, _ := range modifiedDriverRoute {
 							neighbor := deepCopyRoute(route)
 							// insert load at new position
 							neighbor[n] = slices.Insert(neighbor[n], o, neighbor[i][sourceRouteIdx])
 
-							// remove the element we just copied
+							// remove the load we just copied
 							neighbor[i] = slices.Delete(neighbor[i], sourceRouteIdx, sourceRouteIdx+1)
 
-							// remove entire previous driver slot, if we took the last element
+							// remove entire previous driver route, if we took the last element
 							if len(neighbor[i]) == 0 {
 								neighbor = slices.Delete(neighbor, i, i+1)
 							}
@@ -133,15 +140,10 @@ func getNeighbors(route Route) []Route {
 			}
 		}
 	}
-	// fmt.Println("neighbors:")
-	// for i, n := range neighbors {
-	// 	fmt.Println(i, n)
-	// }
-
 	return neighbors
 }
 
-// To avoid the nested slices from being entangled when branching, manually copy them
+// Copy slice contents, to avoid having slices refer to same underlying array.
 func deepCopyRoute(a Route) Route {
 	result := make([][]int, 0, len(a))
 	for _, v := range a {
@@ -151,13 +153,3 @@ func deepCopyRoute(a Route) Route {
 	}
 	return result
 }
-
-// func deepCopyRoute(a Route) Route {
-// 	result := make([][]int, 0, len(a))
-// 	for _, v := range a {
-// 		nested := make([]int, len(v))
-// 		copy(nested, v)
-// 		result = append(result, v)
-// 	}
-// 	return result
-// }
