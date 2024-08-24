@@ -19,6 +19,9 @@ const iterations = 76
 // Size of Tabu list
 const tabuSize = 20
 
+// CandidateResult is the output of a concurrently evaluated candidate solution.
+// If 'good' is true, the main function should check the score
+// against the best candidate score.
 type CandidateResult struct {
 	score     float64
 	candidate Route

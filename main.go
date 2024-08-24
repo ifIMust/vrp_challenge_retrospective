@@ -17,7 +17,11 @@ func main() {
 	}
 
 	loads := input.ReadFile(os.Args[1])
+
+	// Use Greedy algorithm to find a valid solution quickly
 	assignments, _ := greedy.AssignRoutes(loads)
+
+	// Perform Tabu Search on the solution, to find an improved solution
 	assignments = tabu.TabuSearch(assignments, loads)
 
 	for _, driver := range assignments {
