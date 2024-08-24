@@ -46,3 +46,11 @@ Although my branch and bound algorithm produced a lower cost than this greedy al
 The cost function heavily penalizes additional drivers, so this Tabu Search explores removing loads from routes below a certain size (tabu.maxSourceRouteSize), and placing those loads in other routes. Larger values for maxSourceRouteSize can increase the number of neighboring candidates per iteration dramatically. Smaller values are much faster, but are less likely to find optimal solutions. Testing led to setting this number to 5 to achieve low cost results.
 
 Performing a deep compare of a candidate to the Tabu list is expensive, so that step is delayed until necessary. A larger Tabu list size slows time performance, but too small a list harms the cost performance.
+
+Overall, this is a time-consuming approach, but it provides quality solutions if enough iterations and time are permitted.
+
+#### Further Work
+With more time available, further improvements would include:
+- Searching additional neighbors for solutions. The current approach only moves loads to other driver's routes, and does not test different sequences within a route.
+- Decomposition of nested loops in tabu.getNeighbors for improved readability.
+- Increased test coverage.

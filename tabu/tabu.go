@@ -28,27 +28,20 @@ type CandidateResult struct {
 	good      bool
 }
 
-func handleCandidate(candidate Route, bestCandidateScore float64, ld *common.LoadDistance, tabu []Route, resultChan chan CandidateResult) {
-	var result CandidateResult
-	result.candidate = candidate
-
-	if isValid(candidate, ld) {
-		result.score = ld.RouteCost(candidate)
-		if result.score < bestCandidateScore && !isTabu(candidate, tabu) {
-			result.good = true
-		}
-	}
-	resultChan <- result
-}
-
 // Try to improve a solution by exploring similar solutions.
 func TabuSearch(route Route, loads []*common.Load) Route {
+	// Goroutines are used to process the candidate queue. When complete,
+	// they send the result to resultChan.
 	resultChan := make(chan CandidateResult)
+
+	// The LoadDistance object is used to compute route costs.
 	ld := common.NewLoadDistance(loads)
 
 	bestScore := ld.RouteCost(route)
 	bestSolution := deepCopyRoute(route)
 	bestCandidate := bestSolution
+
+	// The initial best candidate is the route given as input.
 	var candidates []Route = make([]Route, 1)
 	candidates[0] = bestCandidate
 
@@ -58,12 +51,32 @@ func TabuSearch(route Route, loads []*common.Load) Route {
 	var tabu []Route = make([]Route, 0)
 
 	for i := 0; i < iterations; i += 1 {
-		candidates = getNeighbors(bestCandidate)
 		bestCandidateScore := math.Inf(1)
 
-		for _, c := range candidates {
-			go handleCandidate(c, bestCandidateScore, ld, tabu, resultChan)
+		// Generate the "neighboring space" of the previous best candidate.
+		candidates = getNeighbors(bestCandidate)
+
+		// Find valid candidates that are not on the Tabu list.
+		// This creates a large, but finite, amount of goroutines to handle
+		// the expensive tasks of computing the route costs, and performing a deep
+		// comparison against the Tabu list.
+		for _, candidate := range candidates {
+			go func() {
+				var result CandidateResult
+				result.candidate = candidate
+
+				if isValid(candidate, ld) {
+					result.score = ld.RouteCost(candidate)
+					if !isTabu(candidate, tabu) {
+						result.good = true
+					}
+				}
+				resultChan <- result
+			}()
 		}
+
+		// Read results from the result channel, and determine which,
+		// if any, candidate was the best from the batch.
 		for ci := 0; ci < len(candidates); ci += 1 {
 			result := <-resultChan
 			if result.good && result.score < bestCandidateScore {
@@ -72,24 +85,30 @@ func TabuSearch(route Route, loads []*common.Load) Route {
 			}
 		}
 
+		// If there were no valid, non-Tabu candidates, the search is complete.
 		if bestCandidateScore == math.Inf(1) {
 			break
 		}
 
+		// If we found a new best solution, save it.
 		if bestCandidateScore < bestScore {
 			bestScore = bestCandidateScore
 			bestSolution = bestCandidate
 		}
 
+		// The best candidate is added to the Tabu list, so we will not consider it again soon.
 		tabu = append(tabu, bestCandidate)
+
+		// Remove old Tabu entries, to enforce a deliberately short memory.
 		if len(tabu) > tabuSize {
 			tabu = tabu[1:]
 		}
-
 	}
 	return bestSolution
 }
 
+// A route that exactly matches any route on this list
+// has already been explored recently.
 func isTabu(route Route, tabu []Route) bool {
 	for _, t := range tabu {
 		if reflect.DeepEqual(route, t) {
