@@ -1,11 +1,13 @@
 package common
 
-// LoadDistance precomputes the distance from load dropoff to pickup
+// LoadDistance precomputes and stores the travel time between load dropoffs and pickups.
+// It can use these values to compute the cost of routes.
 type LoadDistance struct {
 	loads     LoadMap
 	distances map[int]map[int]float64
 }
 
+// Construct a LoadDistance, precomputing travel time between loads
 func NewLoadDistance(loads []*Load) *LoadDistance {
 	ld := LoadDistance{}
 	ld.loads = AsMap(loads)
@@ -37,19 +39,20 @@ func (ld *LoadDistance) RouteCost(routes [][]int) float64 {
 	minutes := 0.0
 	for _, driver := range routes {
 		drivers += 1
-		minutes += ld.MinutesFromRoute(driver, true)
+		minutes += ld.MinutesFromRoute(driver)
 	}
 	return float64(drivers)*500.0 + minutes
 }
 
-func (ld *LoadDistance) MinutesFromRoute(route []int, includeDepotTime bool) float64 {
+// MinutesFromRoute computes the time required for one driver
+// to deliver all loads, including travel time to and from the depot.
+func (ld *LoadDistance) MinutesFromRoute(route []int) float64 {
 	minutes := 0.0
 	numLoads := len(route)
 	if numLoads > 0 {
-		if includeDepotTime {
-			minutes += ld.loads[route[0]].HomeCostPickup()
-			minutes += ld.loads[route[numLoads-1]].HomeCostDropoff()
-		}
+		minutes += ld.loads[route[0]].HomeCostPickup()
+		minutes += ld.loads[route[numLoads-1]].HomeCostDropoff()
+
 		lastLoad := route[0]
 		for _, l := range route {
 			minutes += ld.loads[l].Cost

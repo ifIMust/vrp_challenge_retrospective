@@ -102,7 +102,7 @@ func isTabu(route Route, tabu []Route) bool {
 // isValid determines whether a solution violates the driver maximum distance constraint.
 func isValid(route Route, ld *common.LoadDistance) bool {
 	for _, driverRoute := range route {
-		if ld.MinutesFromRoute(driverRoute, true) > common.MaxMinutesPerDriver {
+		if ld.MinutesFromRoute(driverRoute) > common.MaxMinutesPerDriver {
 			return false
 		}
 	}

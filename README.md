@@ -32,7 +32,7 @@ The core algorithm used for Tabu search is based on the description found there.
 - Tried to improve the cost result by implementing a Branch and Bound approach. I was able to get one working, but it produced only slightly better outcomes than the greedy approach. It was also brittle. Small changes to the bounding function caused it to degenerate into long run times.
 - Considered Integer Linear Programming approach. I was unsure if I could formulate the problem correctly with limited time remaining.
 - Tried a shallow Tabu search that sought to move loads from routes of length 1 to other routes. This was successful, so I expanded it to a deep search.
-- Profiled Tabu search. Comparisons to the Tabu list are expensive, so I minimized those. Used goroutines to process the candidate queue, to relieve CPU bottleneck.
+- Profiled Tabu search. Comparisons to the Tabu list are expensive, so I minimized those. Used goroutines when processing the candidate queue, to relieve CPU bottleneck.
 
 ### Design
 Since all location data is available from the outset, the time costs of traveling to/from the depot, completing a load, and travelling between loads, are precomputed.
