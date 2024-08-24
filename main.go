@@ -20,7 +20,6 @@ func main() {
 
 	assignments, _ := greedy.AssignRoutes(loads)
 	//assignments := more_branch.AssignRoutes(loads)
-	//assignments := assemble_branch.AssignRoutes(loads)
 
 	assignments = tabu.TabuSearch(assignments, loads)
 

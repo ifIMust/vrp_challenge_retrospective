@@ -11,16 +11,36 @@ import (
 type Route [][]int
 
 // Driver routes this size or smaller will be selected for moving loads to other routes
-const maxSourceRouteSize = 4
+const maxSourceRouteSize = 5
 
 // Total Tabu search loops
-const iterations = 48
+const iterations = 76
 
 // Size of Tabu list
-const tabuSize = 12
+const tabuSize = 20
+
+type CandidateResult struct {
+	score     float64
+	candidate Route
+	good      bool
+}
+
+func handleCandidate(candidate Route, bestCandidateScore float64, ld *common.LoadDistance, tabu []Route, resultChan chan CandidateResult) {
+	var result CandidateResult
+	result.candidate = candidate
+
+	if isValid(candidate, ld) {
+		result.score = ld.RouteCost(candidate)
+		if result.score < bestCandidateScore && !isTabu(candidate, tabu) {
+			result.good = true
+		}
+	}
+	resultChan <- result
+}
 
 // Try to improve a solution by exploring similar solutions.
 func TabuSearch(route Route, loads []*common.Load) Route {
+	resultChan := make(chan CandidateResult)
 	ld := common.NewLoadDistance(loads)
 	bestScore := ld.RouteCost(route)
 	bestSolution := deepCopyRoute(route)
@@ -34,13 +54,13 @@ func TabuSearch(route Route, loads []*common.Load) Route {
 		bestCandidateScore := math.Inf(1)
 
 		for _, c := range candidates {
-			if isValid(c, ld) {
-				score := ld.RouteCost(c)
-
-				if score < bestCandidateScore && !isTabu(c, tabu) {
-					bestCandidateScore = score
-					bestCandidate = c
-				}
+			go handleCandidate(c, bestCandidateScore, ld, tabu, resultChan)
+		}
+		for ci := 0; ci < len(candidates); ci += 1 {
+			result := <-resultChan
+			if result.good && result.score < bestCandidateScore {
+				bestCandidateScore = result.score
+				bestCandidate = result.candidate
 			}
 		}
 
