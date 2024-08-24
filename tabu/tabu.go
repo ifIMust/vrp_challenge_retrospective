@@ -11,13 +11,13 @@ import (
 type Route [][]int
 
 // Driver routes this size or smaller will be selected for moving loads to other routes
-const maxSourceRouteSize = 3
+const maxSourceRouteSize = 4
 
 // Total Tabu search loops
-const iterations = 42
+const iterations = 48
 
 // Size of Tabu list
-const tabuSize = 10
+const tabuSize = 12
 
 // Try to improve a solution by exploring similar solutions.
 func TabuSearch(route Route, loads []*common.Load) Route {
