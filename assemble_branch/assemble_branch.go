@@ -2,7 +2,6 @@ package assemble_branch
 
 import (
 	"container/heap"
-	"fmt"
 	"math"
 
 	"github.com/ifIMust/vrp_challenge/common"
@@ -140,7 +139,6 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 				route := []int{drop, pick}
 				if c.loadDistances.MinutesFromRoute(route, true) > common.MaxMinutesPerDriver {
 					// The two nearest loads are sadly too much work for one driver.
-					fmt.Println("pair was too ungainly for one driver")
 					c.startRouteNearHome(node)
 					continue
 				}
@@ -192,7 +190,6 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 							heap.Push(&queue, newNode)
 							addedBack = true
 							backLoad = nearestLoad
-							//fmt.Println("added back")
 						}
 					}
 				}
@@ -220,7 +217,6 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 							heap.Push(&queue, newNode)
 							addedFront = true
 							frontLoad = nearestLoad
-							//fmt.Println("added front")
 						}
 					}
 				}
@@ -253,7 +249,6 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 						newNode.lowerBound = c.bound(newNode)
 						if newNode.lowerBound < c.lowestCost() {
 							heap.Push(&queue, newNode)
-							//fmt.Println("added dual")
 						}
 					}
 				} else if !addedBack && !addedFront {

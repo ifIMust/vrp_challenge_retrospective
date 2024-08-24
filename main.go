@@ -17,10 +17,6 @@ func main() {
 
 	loads := input.ReadFile(os.Args[1])
 
-	// assignments, minutes := greedy.AssignRoutes(loads)
-	// cost := common.QuickCost(len(assignments), minutes)
-	// fmt.Println("cost: ", cost)
-
 	assignments := more_branch.AssignRoutes(loads)
 	//assignments := assemble_branch.AssignRoutes(loads)
 

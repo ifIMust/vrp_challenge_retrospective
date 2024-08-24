@@ -26,14 +26,6 @@ func (l *Load) HomeCostDropoff() float64 {
 // LoadMap is a helper type for organizing Loads
 type LoadMap map[int]*Load
 
-func (lm LoadMap) Duplicate() LoadMap {
-	dup := make(map[int]*Load)
-	for k, v := range lm {
-		dup[k] = v
-	}
-	return dup
-}
-
 // AsMap is a helper function for dealing with collections of Loads
 func AsMap(loads []*Load) LoadMap {
 	m := make(map[int]*Load)
