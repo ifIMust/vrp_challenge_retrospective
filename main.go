@@ -20,6 +20,8 @@ func main() {
 	assignments := more_branch.AssignRoutes(loads)
 	//assignments := assemble_branch.AssignRoutes(loads)
 
+	//assignments = tabu.TabuSearch(assignments, loads)
+
 	// output the results from the result structures
 	for _, driver := range assignments {
 		fmt.Println(formatSlice(driver))
