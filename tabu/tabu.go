@@ -139,7 +139,9 @@ func getNeighbors(route Route) []Route {
 			// Try moving loads from the route to all positions in all other routes.
 			for n, modifiedDriverRoute := range route {
 				if i != n { // Don't move the load into the same route.
+					// Iterate the target route to insert a load at every position
 					for o := 0; o < len(modifiedDriverRoute)+1; o += 1 {
+						// Iterate the source route to move a load from every position
 						for sourceRouteIdx := 0; sourceRouteIdx < driverRouteSz; sourceRouteIdx += 1 {
 							neighbor := deepCopyRoute(route)
 							// insert load at new position

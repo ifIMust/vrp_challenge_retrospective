@@ -6,6 +6,7 @@ Each load must be picked up and dropped off at specific locations, while minimiz
 The solution employed is Tabu Search. An initial valid solution is found using a greedy algorithm. Then the neighboring solution space is explored by testing similar solutions.
 
 ## Build
+A Go compiler is required.
 ```
 go build -o vrp main.go
 ```
