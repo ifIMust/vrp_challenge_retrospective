@@ -10,8 +10,14 @@ import (
 
 type Route [][]int
 
-const iterations = 64
-const tabuSize = iterations / 2
+// Driver routes this size or smaller will be selected for moving loads to other routes
+const maxSourceRouteSize = 3
+
+// Total Tabu search loops
+const iterations = 27
+
+// Size of Tabu list
+const tabuSize = 6
 
 // Try to improve a solution by exploring similar solutions.
 func TabuSearch(route Route, loads []*common.Load) Route {
@@ -28,10 +34,10 @@ func TabuSearch(route Route, loads []*common.Load) Route {
 		bestCandidateScore := math.Inf(1)
 
 		for _, c := range candidates {
-			if !isTabu(c, tabu) && isValid(c, ld) {
+			if isValid(c, ld) {
 				score := ld.RouteCost(c)
 
-				if score < bestCandidateScore {
+				if score < bestCandidateScore && !isTabu(c, tabu) {
 					bestCandidateScore = score
 					bestCandidate = c
 				}
@@ -74,24 +80,31 @@ func isValid(route Route, ld *common.LoadDistance) bool {
 	return true
 }
 
-// Focus on trying to insert single load routes into other routes.
+// Focus on trying to insert single loads from smallest routes into other routes.
 func getNeighbors(route Route) []Route {
 	neighbors := make([]Route, 0)
 	for i, driverRoute := range route {
 		driverRouteSz := len(driverRoute)
-		if driverRouteSz == 1 {
+		if driverRouteSz <= maxSourceRouteSize {
 			// Try moving this single load everywhere else
 			for n, modifiedDriverRoute := range route {
 				if i != n {
 					for o := 0; o < len(modifiedDriverRoute)+1; o += 1 {
-						//for o, _ := range modifiedDriverRoute {
-						neighbor := deepCopyRoute(route)
-						// insert load at new position
-						neighbor[n] = slices.Insert(neighbor[n], o, route[i][0])
+						for sourceRouteIdx := 0; sourceRouteIdx < driverRouteSz; sourceRouteIdx += 1 {
+							//for o, _ := range modifiedDriverRoute {
+							neighbor := deepCopyRoute(route)
+							// insert load at new position
+							neighbor[n] = slices.Insert(neighbor[n], o, neighbor[i][sourceRouteIdx])
 
-						// remove entire previous driver slot
-						neighbor = slices.Delete(neighbor, i, i+1)
-						neighbors = append(neighbors, neighbor)
+							// remove the element we just copied
+							neighbor[i] = slices.Delete(neighbor[i], sourceRouteIdx, sourceRouteIdx+1)
+
+							// remove entire previous driver slot, if we took the last element
+							if len(neighbor[i]) == 0 {
+								neighbor = slices.Delete(neighbor, i, i+1)
+							}
+							neighbors = append(neighbors, neighbor)
+						}
 					}
 				}
 			}

@@ -1,5 +1,4 @@
 #!/usr/bin/env bash
 set -e
 go build -o vrp main.go
-python evaluateShared.py --problemDir Training\ Problems/ --cmd ./vrp
-#python evaluateShared.py --problemDir subset --cmd ./vrp
+python evaluateShared.py --cmd ./vrp --problemDir Training\ Problems/ 
