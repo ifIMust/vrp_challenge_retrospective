@@ -5,8 +5,9 @@ import (
 	"os"
 	"strings"
 
+	"github.com/ifIMust/vrp_challenge/greedy"
 	"github.com/ifIMust/vrp_challenge/input"
-	"github.com/ifIMust/vrp_challenge/more_branch"
+	"github.com/ifIMust/vrp_challenge/tabu"
 )
 
 func main() {
@@ -17,8 +18,10 @@ func main() {
 
 	loads := input.ReadFile(os.Args[1])
 
-	assignments := more_branch.AssignRoutes(loads)
-	//assignments := assemble_branch.AssignRoutes(loads)
+	assignments, _ := greedy.AssignRoutes(loads)
+	//assignments := more_branch.AssignRoutes(loads)
+
+	assignments = tabu.TabuSearch(assignments, loads)
 
 	// output the results from the result structures
 	for _, driver := range assignments {
