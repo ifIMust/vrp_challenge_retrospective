@@ -14,10 +14,10 @@ type Route [][]int
 const maxSourceRouteSize = 3
 
 // Total Tabu search loops
-const iterations = 27
+const iterations = 42
 
 // Size of Tabu list
-const tabuSize = 6
+const tabuSize = 10
 
 // Try to improve a solution by exploring similar solutions.
 func TabuSearch(route Route, loads []*common.Load) Route {
