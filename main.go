@@ -16,10 +16,14 @@ func main() {
 		os.Exit(1)
 	}
 
-	loads := input.ReadFile(os.Args[1])
+	loads, err := input.ReadFile(os.Args[1])
+	if err != nil {
+		fmt.Println("Failed to read input file:", err.Error())
+		os.Exit(2)
+	}
 
 	// Use Greedy algorithm to find a valid solution quickly
-	assignments, _ := greedy.AssignRoutes(loads)
+	assignments := greedy.AssignRoutes(loads)
 
 	// Perform Tabu Search on the solution, to find an improved solution
 	assignments = tabu.TabuSearch(assignments, loads)

@@ -3,7 +3,6 @@ package input
 import (
 	"bufio"
 	"errors"
-	"log"
 	"os"
 	"strconv"
 	"strings"
@@ -11,29 +10,32 @@ import (
 	"github.com/ifIMust/vrp_challenge/common"
 )
 
-func ReadFile(fileName string) []*common.Load {
+// ReadFile parses a VRP problem from a file, and outputs a
+// slice of Loads if successful.
+func ReadFile(fileName string) ([]*common.Load, error) {
 	loads := make([]*common.Load, 0)
 	file, err := os.Open(fileName)
 	if err != nil {
-		log.Fatal(err)
-		return loads
+		return loads, err
 	}
 	defer file.Close()
 
 	scanner := bufio.NewScanner(file)
 	for scanner.Scan() {
-		// Process line
+		// Process line. Errors reading a line are silently ignored,
+		// which discards the expected header row.
 		load, err := loadFromLine(scanner.Text())
 		if err == nil {
 			loads = append(loads, load)
 		}
 	}
-	if err := scanner.Err(); err != nil {
-		log.Fatal(err)
-	}
-	return loads
+	err = scanner.Err()
+	return loads, err
 }
 
+// loadFromLine creates a Load from a line of formatted text.
+// Expected input style is space-delimited with 3 fields, e.g.:
+// "1 (12.34,56.78) (12.34,56.78)"
 func loadFromLine(line string) (*common.Load, error) {
 	fields := strings.Split(line, " ")
 	if len(fields) != 3 {
@@ -57,6 +59,7 @@ func loadFromLine(line string) (*common.Load, error) {
 	return common.NewLoad(index, pickup, dropoff), nil
 }
 
+// parseCoords creates a Location from formatted text.
 // Expected input style: "(12.34,56.78)"
 func parseCoords(coords string) (*common.Location, error) {
 	coords = strings.ReplaceAll(coords, "(", "")

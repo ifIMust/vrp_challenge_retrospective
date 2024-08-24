@@ -26,14 +26,6 @@ I searched the Internet for background information, hoping to find inspiration f
 My best sources were the Wikipedia pages on the [VRP](https://en.wikipedia.org/wiki/Vehicle_routing_problem), [Branch and Bound](https://en.wikipedia.org/wiki/Branch_and_bound), and [Tabu Search](https://en.wikipedia.org/wiki/Tabu_search).
 The core algorithm used for Tabu search is based on the description found there.
 
-### Development Process
-- Started with addressing project I/O needs and basic structures like Locations and Loads.
-- Came up with a working greedy algorithm.
-- Tried to improve the cost result by implementing a Branch and Bound approach. I was able to get one working, but it produced only slightly better outcomes than the greedy approach. It was also brittle. Small changes to the bounding function caused it to degenerate into long run times.
-- Considered Integer Linear Programming approach. I was unsure if I could formulate the problem correctly with limited time remaining.
-- Tried a shallow Tabu search that sought to move loads from routes of length 1 to other routes. This was successful, so I expanded it to a deep search.
-- Profiled Tabu search. Comparisons to the Tabu list are expensive, so I minimized those. Used goroutines when processing the candidate queue, to relieve CPU bottleneck.
-
 ### Design
 Since all location data is available from the outset, the time costs of traveling to/from the depot, completing a load, and travelling between loads, are precomputed.
 
@@ -54,3 +46,13 @@ With more time available, further improvements would include:
 - Searching additional neighbors for solutions. The current approach only moves loads to other driver's routes, and does not test different sequences within a route.
 - Decomposition of nested loops in tabu.getNeighbors for improved readability.
 - Increased test coverage.
+
+### Development Process
+Here's some more detail of how the project progressed over 48 hours.
+- Started with addressing project I/O needs and basic structures like Locations and Loads.
+- Came up with a working greedy algorithm.
+- Tried to improve the cost result by implementing a Branch and Bound approach. I was able to get one working, but it produced only slightly better outcomes than the greedy approach. It was also brittle. Small changes to the bounding function caused it to degenerate into long run times.
+- Considered Integer Linear Programming approach. I was unsure if I could formulate the problem correctly with limited time remaining.
+- Tried a shallow Tabu search that sought to move loads from routes of length 1 to other routes. This was successful, so I expanded it to a deep search.
+- Profiled Tabu search. Comparisons to the Tabu list are expensive, so I minimized those. Used goroutines when processing the candidate queue, to relieve CPU bottleneck. This reached desired low cost level.
+
