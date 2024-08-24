@@ -1,1 +1,9 @@
+# Typical name for the built executable
 vrp
+
+# A helper script used for testing
+try
+
+# Test files used to develop the algorithm
+Training Problems/
+evaluateShared.py

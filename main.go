@@ -17,18 +17,15 @@ func main() {
 	}
 
 	loads := input.ReadFile(os.Args[1])
-
 	assignments, _ := greedy.AssignRoutes(loads)
-	//assignments := more_branch.AssignRoutes(loads)
-
 	assignments = tabu.TabuSearch(assignments, loads)
 
-	// output the results from the result structures
 	for _, driver := range assignments {
 		fmt.Println(formatSlice(driver))
 	}
 }
 
+// Modify the standard formatting for a slice, replacing commas with spaces
 func formatSlice(slice []int) string {
 	defaultFormat := fmt.Sprintf("%v", slice)
 	return strings.ReplaceAll(defaultFormat, " ", ",")
