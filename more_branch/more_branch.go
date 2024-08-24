@@ -223,7 +223,7 @@ func deepCopyAssigments(a [][]int) [][]int {
 	for _, v := range a {
 		nested := make([]int, len(v))
 		copy(nested, v)
-		result = append(result, v)
+		result = append(result, nested)
 	}
 	return result
 
