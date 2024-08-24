@@ -49,9 +49,8 @@ func (c *BranchBoundSearcher) postResult(minutesDriven float64, route [][]int) {
 // branch and bound strategy. It is used to sort solutions by lowest cost estimate
 // in the priority queue.
 type SearchItem struct {
-	lowerBound float64
-
-	remainingLoads    common.LoadMap
+	lowerBound        float64
+	visited           map[int]struct{}
 	assignments       [][]int
 	driver            int
 	location          *common.Location
@@ -102,13 +101,12 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 	// Set up initial state / head of graph for first driver
 	assignments := make([][]int, 0)
 	assignments = append(assignments, make([]int, 0))
-	remainingLoads := common.AsMap(c.loads)
 
 	queue := NewLoadPriorityQueue()
 
 	startNode := &SearchItem{
 		lowerBound:        c.lowestCost(),
-		remainingLoads:    remainingLoads,
+		visited:           make(map[int]struct{}),
 		assignments:       assignments,
 		driver:            0,
 		location:          common.HomeLocation,
@@ -120,37 +118,31 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 	for queue.Len() > 0 {
 		node := heap.Pop(&queue).(*SearchItem)
 
-		if len(node.remainingLoads) == 0 {
+		if len(c.loads) == len(node.visited) {
 			// candidate complete solution
 			node.totalMinutesUsed += node.location.HomeCost
 			c.postResult(node.totalMinutesUsed, node.assignments)
 		} else {
 			// partial solution
-
-			// Precompute overall cost remaining, regardless of next branch choice
-			var minCost = 0.0
-			var lowestHomeCost = math.Inf(1)
-			for _, load := range node.remainingLoads {
-				minCost += load.Cost
-				lowestHomeCost = min(lowestHomeCost, load.HomeCostDropoff())
-			}
-			minCost += lowestHomeCost
-
 			// Search all possible branches from this point
-			for _, load := range node.remainingLoads {
-				// Set up a node representing the branch where this node was done next
+			for _, load := range c.loads {
+				_, visited := node.visited[load.Index]
+				if visited {
+					continue
+				}
+
+				// Set up a node representing the branch where this Load is handled next
 				newNode := &SearchItem{}
 				newNode.assignments = deepCopyAssigments(node.assignments)
-				newNode.remainingLoads = node.remainingLoads.Duplicate()
-				delete(newNode.remainingLoads, load.Index)
 				newNode.location = load.Dropoff
+				newNode.visited = duplicateVisited(node.visited)
+				newNode.visited[load.Index] = struct{}{}
 
 				if driverTotalMinutesWithLoad(load, node.driverMinutesUsed, node.location) > common.MaxMinutesPerDriver {
 					// New driver
 					newNode.driver = node.driver + 1
 					newNode.assignments = append(newNode.assignments, make([]int, 1))
 					newNode.assignments[newNode.driver][0] = load.Index
-
 					loadTime := load.HomeCostPickup() + load.Cost
 					newNode.driverMinutesUsed = loadTime
 
@@ -167,7 +159,7 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 
 				// Estimate if this branch might be better than the best solution
 				// minCost includes this load, so subtract its cost for more accurate bounding
-				newNode.lowerBound = c.bound(newNode, minCost-load.Cost)
+				newNode.lowerBound = c.bound(newNode)
 				if newNode.lowerBound < c.lowestCost() {
 					heap.Push(&queue, newNode)
 				}
@@ -178,16 +170,17 @@ func (c *BranchBoundSearcher) GetRoutes() [][]int {
 }
 
 // Bounding function for branch pruning
-func (c *BranchBoundSearcher) bound(node *SearchItem, minimumRemainingLoadMinutes float64) float64 {
-	remainingLoadNum := len(node.remainingLoads)
+func (c *BranchBoundSearcher) bound(node *SearchItem) float64 {
+	minCostOfRemainingLoads := c.minRemainingMinutes(node.visited)
+	remainingLoadNum := len(c.loads) - len(node.visited)
 
 	// Time cost remaining includes precomputed pickup->delivery cost for all loads,
 	// travel time to next node, and lowest possible return to depot time.
-	totalMinutesMinimum := node.totalMinutesUsed + minimumRemainingLoadMinutes
+	totalMinutesMinimum := node.totalMinutesUsed + minCostOfRemainingLoads
 
 	avgDistancePerLoad := c.loadDistances.AverageDistance()
 
-	// Add approximate travel time between all remaining loads
+	// Add approximate travel time for all remaining loads
 	approxMinutes := totalMinutesMinimum + avgDistancePerLoad*float64(remainingLoadNum-1)
 
 	// Estimate drivers needed for all remaining stops based on a heuristic minimum
@@ -207,6 +200,17 @@ func (c *BranchBoundSearcher) bound(node *SearchItem, minimumRemainingLoadMinute
 	return common.QuickCost(totalDrivers, approxMinutes)
 }
 
+func (c *BranchBoundSearcher) minRemainingMinutes(visited map[int]struct{}) float64 {
+	var minCost = 0.0
+	for _, load := range c.loads {
+		_, exclude := visited[load.Index]
+		if !exclude {
+			minCost += load.Cost
+		}
+	}
+	return minCost
+}
+
 // Calculate the impact of adding a Load for this driver, to compare against the daily maximum
 // Includes driving to the pickup, dropoff, and depot.
 func driverTotalMinutesWithLoad(load *common.Load, prevMinutes float64, location *common.Location) float64 {
@@ -223,4 +227,12 @@ func deepCopyAssigments(a [][]int) [][]int {
 	}
 	return result
 
+}
+
+func duplicateVisited(source map[int]struct{}) map[int]struct{} {
+	result := make(map[int]struct{})
+	for i, j := range source {
+		result[i] = j
+	}
+	return result
 }

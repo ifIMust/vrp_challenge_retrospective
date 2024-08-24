@@ -43,6 +43,30 @@ func (ld *LoadDistance) AverageDistance() float64 {
 	return ld.averageDistance
 }
 
+// Average distance between loads not excluded.
+func (ld *LoadDistance) AverageDistanceRemaining(exclude map[int]struct{}) float64 {
+	numDistances := 0
+	distanceSum := 0.0
+
+	for i, nestedMap := range ld.distances {
+		_, iExcluded := exclude[i]
+		if !iExcluded {
+			for j, distance := range nestedMap {
+				_, jExcluded := exclude[j]
+				if !jExcluded {
+					distanceSum += distance
+					numDistances += 1
+				}
+			}
+		}
+	}
+
+	if distanceSum == 0 {
+		return 0.0
+	}
+	return distanceSum / float64(numDistances)
+}
+
 // Find the Load nearest to each the given index (Dropoff nearest to Pickup).
 // Exclude all indices found in exclude.
 // Return the index and the distance.

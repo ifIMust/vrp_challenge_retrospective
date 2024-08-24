@@ -5,8 +5,8 @@ import (
 	"os"
 	"strings"
 
-	"github.com/ifIMust/vrp_challenge/assemble_branch"
 	"github.com/ifIMust/vrp_challenge/input"
+	"github.com/ifIMust/vrp_challenge/more_branch"
 )
 
 func main() {
@@ -21,8 +21,8 @@ func main() {
 	// cost := common.QuickCost(len(assignments), minutes)
 	// fmt.Println("cost: ", cost)
 
-	//assignments := more_branch.AssignRoutes(loads)
-	assignments := assemble_branch.AssignRoutes(loads)
+	assignments := more_branch.AssignRoutes(loads)
+	//assignments := assemble_branch.AssignRoutes(loads)
 
 	// output the results from the result structures
 	for _, driver := range assignments {
