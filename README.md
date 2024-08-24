@@ -4,7 +4,7 @@ The program solves a specific variant of a Vehicle Routing Problem.
 Each load must be picked up and dropped off at specific locations, while minimizing overall cost.
 
 The solution employed is Tabu Search. An initial valid solution is found using a greedy algorithm. Then the neighboring solution space is explored by testing similar solutions.
-The final version uses 76 iterations of Tabu Search with a Tabu list size of 20. These settings allow it to process problems with up to 200 loads in 27 seconds or less.
+The final version uses 72 iterations of Tabu Search with a Tabu list size of 20. These settings allow it to process problems with up to 200 loads in 26 seconds or less.
 
 ## Build
 A Go compiler is required.
@@ -47,6 +47,7 @@ Overall, this is a time-consuming approach, but it provides quality solutions if
 With more time available, further improvements would include:
 - Search additional neighbors for solutions. The current approach only moves loads to other driver's routes, and does not test permutations within a route.
 - Decompose nested loops in tabu.getNeighbors for improved readability.
+- Use a semaphore to control the number of goroutines actively processing Tabu Search candidates. Initial tests hurt performance, but it might need tuning.
 - Increase test coverage.
 - Rewrite LoadDistance to use a 2D array instead of its map of maps. The hash times are slowing performance; using the maps might even be worse than just performing the computations every time.
 

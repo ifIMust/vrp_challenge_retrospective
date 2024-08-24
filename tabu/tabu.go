@@ -14,7 +14,7 @@ type Route [][]int
 const maxSourceRouteSize = 5
 
 // Total Tabu search loops
-const iterations = 76
+const iterations = 72
 
 // Size of Tabu list
 const tabuSize = 20
