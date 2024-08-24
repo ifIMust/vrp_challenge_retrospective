@@ -7,6 +7,7 @@ import (
 
 	"github.com/ifIMust/vrp_challenge/input"
 	"github.com/ifIMust/vrp_challenge/more_branch"
+	"github.com/ifIMust/vrp_challenge/tabu"
 )
 
 func main() {
@@ -20,7 +21,7 @@ func main() {
 	assignments := more_branch.AssignRoutes(loads)
 	//assignments := assemble_branch.AssignRoutes(loads)
 
-	//assignments = tabu.TabuSearch(assignments, loads)
+	assignments = tabu.TabuSearch(assignments, loads)
 
 	// output the results from the result structures
 	for _, driver := range assignments {
