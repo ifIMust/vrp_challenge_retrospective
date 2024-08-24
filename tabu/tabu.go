@@ -78,7 +78,8 @@ func isValid(route Route, ld *common.LoadDistance) bool {
 func getNeighbors(route Route) []Route {
 	neighbors := make([]Route, 0)
 	for i, driverRoute := range route {
-		if len(driverRoute) == 1 {
+		driverRouteSz := len(driverRoute)
+		if driverRouteSz == 1 {
 			// Try moving this single load everywhere else
 			for n, modifiedDriverRoute := range route {
 				if i != n {
