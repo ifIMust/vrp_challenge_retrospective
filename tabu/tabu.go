@@ -4,6 +4,7 @@ import (
 	"math"
 	"reflect"
 	"slices"
+	"time"
 
 	"github.com/ifIMust/vrp_challenge/common"
 )
@@ -14,10 +15,12 @@ type Route [][]int
 const maxSourceRouteSize = 5
 
 // Total Tabu search loops
-const iterations = 72
+const iterations = 128
 
 // Size of Tabu list
-const tabuSize = 20
+const tabuSize = 24
+
+const timeLimitSeconds = 28 * time.Second
 
 // CandidateResult is the output of a concurrently evaluated candidate solution.
 // If 'good' is true, the main function should check the score
@@ -50,7 +53,13 @@ func TabuSearch(route Route, loads []*common.Load) Route {
 	// on the way to better ones.
 	var tabu []Route = make([]Route, 0)
 
+	startTime := time.Now()
 	for i := 0; i < iterations; i += 1 {
+		// Stop if we are out of time.
+		if time.Now().Sub(startTime) >= timeLimitSeconds {
+			break
+		}
+
 		bestCandidateScore := math.Inf(1)
 
 		// Generate the "neighboring space" of the previous best candidate.
