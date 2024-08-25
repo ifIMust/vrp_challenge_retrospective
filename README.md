@@ -6,5 +6,6 @@ With the benefit of sleep, here are some retrospective thoughts about that proje
 - 30s to complete a problem with 200 loads was a *requirement*. A timer should be used to stop the Tabu search when time is running low. (Done)
 - The exisiting search should explore a larger neighbor space to find better solutions.
   - Allow moving loads within the same route. (Done)
+- Test using an additional goroutine to read and process results before creating queue workers. (Done. This improved efficiency enough to find an even better solution within the time limit.)
 
 See [vrp_challenge](https://github.com/ifIMust/vrp_challenge) for build instructions and more information.

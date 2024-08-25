@@ -20,7 +20,7 @@ const iterations = 90
 // Size of Tabu list
 const tabuSize = 20
 
-const timeLimitSeconds = 28 * time.Second
+const timeLimitSeconds = 29 * time.Second
 
 // CandidateResult is the output of a concurrently evaluated candidate solution.
 // If 'good' is true, the main function should check the score
@@ -65,6 +65,21 @@ func TabuSearch(route Route, loads []*common.Load) Route {
 		// Generate the "neighboring space" of the previous best candidate.
 		candidates = getNeighbors(bestCandidate)
 
+		iterationComplete := make(chan struct{})
+
+		// Read results from the result channel, and determine which,
+		// if any, candidate was the best from the batch.
+		go func() {
+			for ci := 0; ci < len(candidates); ci += 1 {
+				result := <-resultChan
+				if result.good && result.score < bestCandidateScore {
+					bestCandidateScore = result.score
+					bestCandidate = result.candidate
+				}
+			}
+			iterationComplete <- struct{}{}
+		}()
+
 		// Find valid candidates that are not on the Tabu list.
 		// This creates a large, but finite, amount of goroutines to handle
 		// the expensive tasks of computing the route costs, and performing a deep
@@ -84,15 +99,7 @@ func TabuSearch(route Route, loads []*common.Load) Route {
 			}()
 		}
 
-		// Read results from the result channel, and determine which,
-		// if any, candidate was the best from the batch.
-		for ci := 0; ci < len(candidates); ci += 1 {
-			result := <-resultChan
-			if result.good && result.score < bestCandidateScore {
-				bestCandidateScore = result.score
-				bestCandidate = result.candidate
-			}
-		}
+		<-iterationComplete
 
 		// If there were no valid, non-Tabu candidates, the search is complete.
 		if bestCandidateScore == math.Inf(1) {
@@ -158,6 +165,7 @@ func getNeighbors(route Route) []Route {
 
 							// remove the load we just copied
 							if i == n && sourceRouteIdx > targetRouteIndex {
+								// When moving a load within the same route, the source index may change.
 								neighbor[i] = slices.Delete(neighbor[i], sourceRouteIdx+1, sourceRouteIdx+2)
 							} else {
 								neighbor[i] = slices.Delete(neighbor[i], sourceRouteIdx, sourceRouteIdx+1)
