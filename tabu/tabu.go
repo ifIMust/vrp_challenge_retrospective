@@ -15,10 +15,10 @@ type Route [][]int
 const maxSourceRouteSize = 5
 
 // Total Tabu search loops
-const iterations = 128
+const iterations = 90
 
 // Size of Tabu list
-const tabuSize = 24
+const tabuSize = 20
 
 const timeLimitSeconds = 28 * time.Second
 
@@ -141,24 +141,27 @@ func isValid(route Route, ld *common.LoadDistance) bool {
 func getNeighbors(route Route) []Route {
 	neighbors := make([]Route, 0)
 	// Look through all driver routes for ones the right size
-	for i, driverRoute := range route {
-		driverRouteSz := len(driverRoute)
-		if driverRouteSz <= maxSourceRouteSize {
+	for i, sourceRoute := range route {
+		sourceRouteSz := len(sourceRoute)
+		if sourceRouteSz <= maxSourceRouteSize {
 			// This route is small enough to tamper with.
 			// Try moving loads from the route to all positions in all other routes.
-			for n, modifiedDriverRoute := range route {
-				if i != n { // Don't move the load into the same route.
-					// Iterate the target route to insert a load at every position
-					for o := 0; o < len(modifiedDriverRoute)+1; o += 1 {
-						// Iterate the source route to move a load from every position
-						for sourceRouteIdx := 0; sourceRouteIdx < driverRouteSz; sourceRouteIdx += 1 {
+			for n, targetRoute := range route {
+				// Iterate the target route to insert a load at every position
+				for targetRouteIndex := 0; targetRouteIndex < len(targetRoute)+1; targetRouteIndex += 1 {
+					// Iterate the source route to move a load from every position
+					for sourceRouteIdx := 0; sourceRouteIdx < sourceRouteSz; sourceRouteIdx += 1 {
+						if !(i == n && sourceRouteIdx == targetRouteIndex) {
 							neighbor := deepCopyRoute(route)
 							// insert load at new position
-							neighbor[n] = slices.Insert(neighbor[n], o, neighbor[i][sourceRouteIdx])
+							neighbor[n] = slices.Insert(neighbor[n], targetRouteIndex, neighbor[i][sourceRouteIdx])
 
 							// remove the load we just copied
-							neighbor[i] = slices.Delete(neighbor[i], sourceRouteIdx, sourceRouteIdx+1)
-
+							if i == n && sourceRouteIdx > targetRouteIndex {
+								neighbor[i] = slices.Delete(neighbor[i], sourceRouteIdx+1, sourceRouteIdx+2)
+							} else {
+								neighbor[i] = slices.Delete(neighbor[i], sourceRouteIdx, sourceRouteIdx+1)
+							}
 							// remove entire previous driver route, if we took the last element
 							if len(neighbor[i]) == 0 {
 								neighbor = slices.Delete(neighbor, i, i+1)
@@ -167,6 +170,7 @@ func getNeighbors(route Route) []Route {
 						}
 					}
 				}
+
 			}
 		}
 	}
