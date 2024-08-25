@@ -20,7 +20,7 @@ The following improvements were made:
 - **Explore a larger neighbor space**
   - Move loads within the same route.
   - Remove limit on size of source routes for load reassignment.
-- **Improve parallelism:** Use an additional goroutine to read and process results before creating queue workers.
+- **Improve parallelism:** Use an additional goroutine to read and process results alongside queue workers.
 
 By relying on the time limit to control iterations, the number of Tabu Search iterations was increased.
 Using longer run times to optimize cost produces a very high quality solution.
